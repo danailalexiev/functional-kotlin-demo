@@ -1,10 +1,17 @@
 package bg.dalexiev
 
-class UserNotFoundException(id: Long) : RuntimeException("No user with id $id found")
+sealed interface FindUserResult {
 
-class UserService (private val userRepository: UserRepository) {
-    
-    fun getUserById(id: Long): User =
-        userRepository.findUserById(id) ?: throw UserNotFoundException(id)
-    
+    data class NotFound(val id: Id) : FindUserResult
+
+    data class Found(val user: User) : FindUserResult
+
 }
+
+fun <Ctx> Ctx.getUserById(id: Id): FindUserResult where Ctx : Database, Ctx : Logger =
+    findUserById(id.value)?.let {
+        log("User found!")
+        FindUserResult.Found(it)
+    } ?: FindUserResult.NotFound(id)
+
+
