@@ -1,17 +1,11 @@
 package bg.dalexiev
 
-sealed interface FindUserResult {
+import arrow.core.raise.Raise
 
-    data class NotFound(val id: Id) : FindUserResult
+data class NotFound(val id: Id)
 
-    data class Found(val user: User) : FindUserResult
-
-}
-
-fun <Ctx> Ctx.getUserById(id: Id): FindUserResult where Ctx : Database, Ctx : Logger =
-    findUserById(id.value)?.let {
-        log("User found!")
-        FindUserResult.Found(it)
-    } ?: FindUserResult.NotFound(id)
-
-
+suspend fun <Ctx> Raise<NotFound>.getUserById(context: Ctx, id: Id): User where Ctx : Database, Ctx : Logger =
+    context.findUserById(id.value)?.let {
+        context.log("User found!")
+        it
+    } ?: raise(NotFound(id))

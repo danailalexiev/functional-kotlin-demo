@@ -1,6 +1,6 @@
 package bg.dalexiev
 
-fun Database.findUserById(id: Long): User? =
+suspend fun Database.findUserById(id: Long): User? =
     executeQuery("select * from user where id=$id")?.let {
         User(
             id = Id(it["id"] as Long),
